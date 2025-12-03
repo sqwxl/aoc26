@@ -18,21 +18,26 @@ def import_from_path(module_name, file_path):
     return module
 
 
-def solve(data: Path):
+def solve(data: Path, ab: str | None = None):
     solver = import_from_path(data.name, solution_path / f"s{data.name}.py")
     text = data.read_text().strip()
-    t0 = time.perf_counter()
-    a = solver.a(text)
-    t1 = time.perf_counter()
-    print(f"a: {a} ({(t1 - t0) * 1000:.2f}ms)")
-    b = solver.b(text)
-    t2 = time.perf_counter()
-    print(f"b: {b} ({(t2 - t1) * 1000:.2f}ms)")
+    if ab is None or ab == "a":
+        t0 = time.perf_counter()
+        a = solver.a(text)
+        t1 = time.perf_counter()
+        print(f"a: {a} ({(t1 - t0) * 1000:.2f}ms)")
+    if ab is None or ab == "b":
+        t0 = time.perf_counter()
+        b = solver.b(text)
+        t1 = time.perf_counter()
+        print(f"b: {b} ({(t1 - t0) * 1000:.2f}ms)")
 
 
 def main():
     if len(sys.argv) > 1:
-        solve(input_path / sys.argv[1])
+        path = input_path / sys.argv[1]
+        ab = sys.argv[2] if len(sys.argv) > 2 else None
+        solve(path, ab)
         return
 
     for i in input_path.iterdir():
