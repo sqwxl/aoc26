@@ -1,39 +1,69 @@
-def parse(data: str) -> list[list[bool]]:
-    return [[c == "@" for c in line] for line in data.splitlines()]
+type Point = tuple[int, int]
+
+OFFSETS = [(i, j) for i in (-1, 0, 1) for j in (-1, 0, 1) if (i, j) != (0, 0)]
 
 
-def neighbors(grid: list[list[bool]], h: int, w: int, i: int, j: int):
+def parse(data: str) -> set[Point]:
+    cells = set()
+    for i, row in enumerate(data.splitlines()):
+        for j, c in enumerate(row):
+            if c == "@":
+                cells.add((i, j))
+
+    return cells
+
+
+def neighbors(cells: set[Point], p: Point) -> set[Point]:
+    n = set()
+
+    for di, dj in OFFSETS:
+        q = (p[0] + di, p[1] + dj)
+        if q in cells:
+            n.add(q)
+
+    return n
+
+
+def is_available(cells: set[Point], p: Point) -> bool:
+    count = 0
+    for di, dj in OFFSETS:
+        if (p[0] + di, p[1] + dj) in cells:
+            count += 1
+        if count >= 4:
+            return False
+
+    return True
+
+
+def remove_available(cells: set[Point]) -> int:
     count = 0
 
-    for k in range(i - 1, i + 2):
-        if k < 0 or k >= h:
-            continue
-        for l in range(j - 1, j + 2):
-            if l < 0 or l >= w:
-                continue
-            if k == i and l == j:
-                continue
-            if grid[k][l]:
-                count += 1
+    candidates = cells.copy()
+
+    while candidates:
+        to_remove = {c for c in candidates if is_available(cells, c)}
+
+        if not to_remove:
+            return count
+
+        count += len(to_remove)
+
+        cells -= to_remove
+
+        candidates = set()
+        for p in to_remove:
+            candidates |= neighbors(cells, p)
 
     return count
 
 
 def a(data: str):
-    grid = parse(data)
-    h, w = len(grid), len(grid[0])
+    cells = parse(data)
 
-    count = 0
-
-    for i in range(0, h):
-        for j in range(0, w):
-            if not grid[i][j]:
-                continue
-            if neighbors(grid, h, w, i, j) < 4:
-                count += 1
-
-    return count
+    return len([p for p in cells if is_available(cells, p)])
 
 
 def b(data: str):
-    pass
+    cells = parse(data)
+
+    return remove_available(cells)
